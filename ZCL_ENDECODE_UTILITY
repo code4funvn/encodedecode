@@ -1,0 +1,92 @@
+class ZCL_ENDECODE_UTILITY definition
+  public
+  final
+  create public .
+
+public section.
+
+  class-methods ENCODE_STRING_BASE64
+    importing
+      !I_INPUT type STRING
+    returning
+      value(R_OUTPUT) type STRING .
+  class-methods DECODE_BASE64_STRING
+    importing
+      !I_INPUT type STRING
+    returning
+      value(R_OUTPUT) type STRING .
+protected section.
+private section.
+ENDCLASS.
+
+
+
+CLASS ZCL_ENDECODE_UTILITY IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Public Method ZCL_ENDECODE_UTILITY=>DECODE_BASE64_STRING
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_INPUT                        TYPE        STRING
+* | [<-()] R_OUTPUT                       TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD DECODE_BASE64_STRING.
+    DATA: LV_XSTRING TYPE XSTRING,
+          LV_LEN     TYPE I,
+          LT_CONTENT TYPE SOLI_TAB.
+    " Decode
+    CALL FUNCTION 'SCMS_BASE64_DECODE_STR'
+      EXPORTING
+        INPUT  = I_INPUT
+      IMPORTING
+        OUTPUT = LV_XSTRING
+      EXCEPTIONS
+        FAILED = 1
+        OTHERS = 2.
+    " Convert Xstring to binary data
+    CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+      EXPORTING
+        BUFFER        = LV_XSTRING
+      IMPORTING
+        OUTPUT_LENGTH = LV_LEN
+      TABLES
+        BINARY_TAB    = LT_CONTENT[].
+    " Convert Binary data to String
+    CALL FUNCTION 'SCMS_BINARY_TO_STRING'
+      EXPORTING
+        INPUT_LENGTH = LV_LEN
+      IMPORTING
+        TEXT_BUFFER  = R_OUTPUT
+      TABLES
+        BINARY_TAB   = LT_CONTENT[]
+      EXCEPTIONS
+        FAILED       = 1
+        OTHERS       = 2.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Public Method ZCL_ENDECODE_UTILITY=>ENCODE_STRING_BASE64
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_INPUT                        TYPE        STRING
+* | [<-()] R_OUTPUT                       TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD ENCODE_STRING_BASE64.
+    DATA: LV_XSTRING TYPE XSTRING.
+*   Convert String To Xstring
+    CALL FUNCTION 'SCMS_STRING_TO_XSTRING'
+      EXPORTING
+        TEXT   = I_INPUT
+      IMPORTING
+        BUFFER = LV_XSTRING
+      EXCEPTIONS
+        FAILED = 1
+        OTHERS = 2.
+*   Convert Xstring To Base64 String
+    CALL FUNCTION 'SCMS_BASE64_ENCODE_STR'
+      EXPORTING
+        INPUT  = LV_XSTRING
+      IMPORTING
+        OUTPUT = R_OUTPUT.
+  ENDMETHOD.
+ENDCLASS.
